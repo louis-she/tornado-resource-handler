@@ -1,7 +1,9 @@
-from tornado_resource_handler import ResourceHandler
+from tornado_resource_handler import create_resource_handler
 from tornado.web import HTTPError
 from tornado.escape import json_decode
 from functools import wraps
+
+ResourceHandler = create_resource_handler()
 
 
 class BooksHandler(ResourceHandler):

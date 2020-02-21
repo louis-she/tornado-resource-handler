@@ -30,7 +30,9 @@ Create a handler with the 7 actions like the controller of Ruby on Rails.
 import tornado.ioloop
 import tornado.web
 
-from tornado_resource_handler import ResourceHandler
+from tornado_resource_handler import create_resource_handler
+
+ResourceHandler = create_resource_handler()
 
 
 class BooksHandler(ResourceHandler):

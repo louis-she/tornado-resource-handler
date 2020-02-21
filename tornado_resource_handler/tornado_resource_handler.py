@@ -6,7 +6,7 @@ from tornado.web import RequestHandler
 from tornado.web import HTTPError
 
 
-class ResourceHandlerMeta(type):
+class _ResourceHandlerMeta(type):
 
     _methods = ['index', 'show', 'edit', 'update', 'destroy', 'new', 'create']
 
@@ -25,7 +25,7 @@ class ResourceHandlerMeta(type):
             return new_func
 
         for key, value in context.items():
-            if key not in ResourceHandlerMeta._methods:
+            if key not in _ResourceHandlerMeta._methods:
                 continue
             parameters = signature(value).parameters.values()
             if not any(map(lambda p: p.kind == Parameter.KEYWORD_ONLY, parameters)):
@@ -34,7 +34,7 @@ class ResourceHandlerMeta(type):
         return super().__new__(cls, clsname, bases, context)
 
 
-class ResourceHandler(RequestHandler, metaclass=ResourceHandlerMeta):
+class _ResourceHandler():
 
     prefix = ''
 
@@ -99,3 +99,11 @@ class ResourceHandler(RequestHandler, metaclass=ResourceHandlerMeta):
     @classmethod
     def _normalize_matcher(self, matcher):
         return re.sub(r'/+', r'/', matcher)
+
+
+def create_resource_handler(inherits=None):
+    if inherits is None:
+        inherits = (RequestHandler,)
+    if not isinstance(inherits, tuple):
+        inherits = (inherits,)
+    return _ResourceHandlerMeta('ResourceHandler', tuple(inherits), dict(_ResourceHandler.__dict__))
