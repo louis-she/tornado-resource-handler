@@ -15,8 +15,20 @@ async def test_index(app):
     assert response.body == b'Page of book list'
 
 
+async def test_index_with_prefix(app):
+    response = await request('/api/v1/books')
+    assert response.code == 200
+    assert response.body == b'Page of book list'
+
+
 async def test_edit(app):
     response = await request('/books/10/edit')
+    assert response.code == 200
+    assert response.body == b'Page of editing book 10'
+
+
+async def test_edit_with_prefix(app):
+    response = await request('/api/v1/books/10/edit')
     assert response.code == 200
     assert response.body == b'Page of editing book 10'
 
@@ -67,3 +79,9 @@ async def test_nested_create_with_token(app):
     response = await request('/books/10/reviews', 'POST', {}, {'Token': 'secret_token'})
     assert response.code == 200
     assert response.body == b'Create review of book 10'
+
+
+async def test_undefined_action(app):
+    with pytest.raises(tornado.httpclient.HTTPClientError) as excinfo:
+        await request('/books/10/reviews', 'PATCH', {}, {'Token': 'secret_token'})
+    assert excinfo.value.code == 405

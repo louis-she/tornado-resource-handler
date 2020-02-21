@@ -3,19 +3,10 @@ import tornado.ioloop
 import tornado.web
 import asyncio
 from pytest import fixture
-from .mock_handlers import (
-    BooksHandler,
-    BooksReviewHandler,
-)
+from .mock_handlers import routes
 
+print(routes)
 def make_app():
-    routes = [
-        *BooksHandler.routes(nested=[
-            *BooksReviewHandler.routes(),
-        ]),
-        *BooksHandler.routes(prefix='/api/v1/')
-    ]
-
     return tornado.web.Application(routes)
 
 

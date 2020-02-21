@@ -55,3 +55,11 @@ class BooksReviewHandler(ResourceHandler):
     @authenticate_token
     def create(self):
         self.write(f'Create review of book {self.book_id}')
+
+
+routes = [
+    *BooksHandler.routes(nested=[
+        *BooksReviewHandler.routes(),
+    ]),
+    *BooksHandler.routes(prefix='/api/v1/')
+]

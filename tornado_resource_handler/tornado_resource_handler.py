@@ -3,6 +3,7 @@ from functools import wraps
 from inspect import signature, Parameter
 
 from tornado.web import RequestHandler
+from tornado.web import HTTPError
 
 
 class ResourceHandlerMeta(type):
@@ -15,7 +16,7 @@ class ResourceHandlerMeta(type):
             return super().__new__(cls, clsname, bases, context)
 
         def flexiable(func):
-            parameter_names = map(lambda p: p.name, signature(func).parameters.values())
+            parameter_names = list(map(lambda p: p.name, signature(func).parameters.values()))
 
             @wraps(func)
             def new_func(self, *args, **kwargs):
@@ -37,32 +38,34 @@ class ResourceHandler(RequestHandler, metaclass=ResourceHandlerMeta):
 
     prefix = ''
 
+    async def _call_action(self, method, **kwargs):
+        if not hasattr(self, method):
+            raise HTTPError(405)
+        else:
+            result = getattr(self, method)(self, **kwargs)
+            if result is not None:
+                await result
+
     async def get(self, resource_id, action, **kwargs):
         if resource_id is None:
-            result = self.index(**kwargs)
+            await self._call_action('index', **kwargs)
         elif resource_id == 'new':
-            result = self.new(**kwargs)
+            await self._call_action('new', **kwargs)
         elif action is None:
-            result = self.show(id=resource_id, **kwargs)
+            await self._call_action('show', id=resource_id, **kwargs)
         elif action == 'edit':
-            result = self.edit(id=resource_id, **kwargs)
-        if result is not None:
-            await result
+            await self._call_action('edit', id=resource_id, **kwargs)
+        else:
+            raise HTTPError(405)
 
     async def patch(self, resource_id, action, **kwargs):
-        result = self.update(id=resource_id, **kwargs)
-        if result is not None:
-            await result
+        await self._call_action('update', id=resource_id, **kwargs)
 
     async def delete(self, resource_id, action, **kwargs):
-        result = self.destroy(id=resource_id, **kwargs)
-        if result is not None:
-            await result
+        await self._call_action('destroy', id=resource_id, **kwargs)
 
     async def post(self, resource_id, action, **kwargs):
-        result = self.create(**kwargs)
-        if result is not None:
-            await result
+        await self._call_action('create', id=resource_id, **kwargs)
 
     @classmethod
     def get_resource_name(cls):
