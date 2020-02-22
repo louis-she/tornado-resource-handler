@@ -33,6 +33,8 @@ import tornado.web
 from tornado_resource_handler import create_resource_handler
 
 ResourceHandler = create_resource_handler()
+# ResourceHandler = create_resource_handler(MyBaseHandler)
+# if you have your own base handler other than tornado.web.RequestHandler
 
 
 class BooksHandler(ResourceHandler):
