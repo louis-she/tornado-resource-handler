@@ -1,10 +1,13 @@
 import re
 from functools import wraps
 from inspect import signature, Parameter
+from contextlib import contextmanager
+
 
 from tornado.web import RequestHandler
 from tornado.web import HTTPError
 
+_prefix = ''
 
 class _ResourceHandlerMeta(type):
 
@@ -82,7 +85,7 @@ class _ResourceHandler():
         target_kwargs = target_kwargs or {}
         nested = nested or []
 
-        nested_prefix = rf'{prefix}/{cls.prefix}/(?P<parent_name>{cls.get_resource_name()})/?(?P<parent_id>[\w\d-]+)?/'
+        nested_prefix = rf'{_prefix}{prefix}/{cls.prefix}/(?P<parent_name>{cls.get_resource_name()})/?(?P<parent_id>[\w\d-]+)?/'
         for sub_route in nested:
             sub_route = list(sub_route)
             sub_route[0] = cls._normalize_matcher(f'{nested_prefix}{sub_route[0]}')
@@ -107,3 +110,11 @@ def create_resource_handler(inherits=None):
     if not isinstance(inherits, tuple):
         inherits = (inherits,)
     return _ResourceHandlerMeta('ResourceHandler', tuple(inherits), dict(_ResourceHandler.__dict__))
+
+
+@contextmanager
+def with_prefix(prefix):
+    global _prefix
+    _prefix = prefix
+    yield
+    _prefix = ''

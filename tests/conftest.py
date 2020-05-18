@@ -5,7 +5,6 @@ import asyncio
 from pytest import fixture
 from .mock_handlers import routes
 
-print(routes)
 def make_app():
     return tornado.web.Application(routes)
 
