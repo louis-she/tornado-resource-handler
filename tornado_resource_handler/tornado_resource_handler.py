@@ -9,6 +9,7 @@ from tornado.web import HTTPError
 
 _prefix = ''
 
+
 class _ResourceHandlerMeta(type):
 
     _methods = ['index', 'show', 'edit', 'update', 'destroy', 'new', 'create']
@@ -37,9 +38,10 @@ class _ResourceHandlerMeta(type):
         return super().__new__(cls, clsname, bases, context)
 
 
-class _ResourceHandler():
+class _ResourceHandler:
 
     prefix = ''
+    plural = True
 
     async def _call_action(self, method, **kwargs):
         if not hasattr(self, method):
@@ -88,6 +90,8 @@ class _ResourceHandler():
         nested_prefix = rf'{_prefix}{prefix}/{cls.prefix}/(?P<parent_name>{cls.get_resource_name()})/?(?P<parent_id>[\w\d-]+)?/'
         for sub_route in nested:
             sub_route = list(sub_route)
+            if _prefix:
+                sub_route[0] = sub_route[0].replace(_prefix, '')
             sub_route[0] = cls._normalize_matcher(f'{nested_prefix}{sub_route[0]}')
             sub_route[2] = {
                 **target_kwargs,
@@ -95,7 +99,7 @@ class _ResourceHandler():
             }
             routes.append(tuple(sub_route))
         route = cls._normalize_matcher(
-            rf'{prefix}/{cls.prefix}/{cls.get_resource_name()}/?(?P<resource_id>[\w\d-]+)?/?(?P<action>[\w\d-]+)?/?')
+            rf'{_prefix}{prefix}/{cls.prefix}/{cls.get_resource_name()}/?(?P<resource_id>[\w\d-]+)?/?(?P<action>[\w\d-]+)?/?')
         routes += [(route, cls, target_kwargs)]
         return routes
 
@@ -113,7 +117,7 @@ def create_resource_handler(inherits=None):
 
 
 @contextmanager
-def with_prefix(prefix):
+def inject_prefix(prefix):
     global _prefix
     _prefix = prefix
     yield

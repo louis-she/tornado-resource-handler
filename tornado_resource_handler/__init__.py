@@ -1,6 +1,6 @@
 """Top-level package for tornado_resource_handler."""
 
-from .tornado_resource_handler import create_resource_handler
+from .tornado_resource_handler import create_resource_handler, inject_prefix
 
 
 __author__ = """Tornado Resource Handler"""
@@ -11,5 +11,6 @@ __all__ = [
     '__author__',
     '__email__',
     '__version__',
-    'create_resource_handler'
+    'create_resource_handler',
+    'inject_prefix'
 ]
